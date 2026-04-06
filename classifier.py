@@ -1,5 +1,5 @@
 """
-Claude classification engine — replaces probability estimation with direction classification.
+Gemini classification engine — replaces probability estimation with direction classification.
 Asks "does this news confirm or deny the market question?" instead of "what's the probability?"
 """
 from __future__ import annotations
@@ -9,14 +9,14 @@ import time
 import logging
 from dataclasses import dataclass
 
-import anthropic
+import google.genai as genai
 
 import config
 from markets import Market
 
 log = logging.getLogger(__name__)
 
-client = anthropic.Anthropic(api_key=config.ANTHROPIC_API_KEY)
+client = genai.Client(api_key=config.GEMINI_API_KEY)
 
 CLASSIFICATION_PROMPT = """You are a news classifier for prediction markets.
 
@@ -64,13 +64,15 @@ def classify(headline: str, market: Market, source: str = "unknown") -> Classifi
     )
 
     try:
-        response = client.messages.create(
+        response = client.models.generate_content(
             model=config.CLASSIFICATION_MODEL,
-            max_tokens=200,
-            temperature=0.1,
-            messages=[{"role": "user", "content": prompt}],
+            contents=prompt,
+            config={
+                "temperature": 0.1,
+                "max_output_tokens": 200,
+            }
         )
-        text = response.content[0].text.strip()
+        text = response.text.strip()
 
         # Extract JSON
         if "```" in text:

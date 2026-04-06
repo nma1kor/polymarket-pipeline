@@ -7,7 +7,7 @@ Breaking News (Twitter / Telegram / RSS)
         ↓ (< 5 seconds)
 Match to niche markets (< $500K volume)
         ↓
-Claude Classification: bullish / bearish / neutral + materiality
+Gemini Classification: bullish / bearish / neutral + materiality
         ↓
 Edge detection + quarter-Kelly sizing
         ↓
@@ -20,7 +20,7 @@ V1 scraped RSS feeds (5-60 min delay), asked Claude "what's the probability?" (w
 
 V2 inverts all three:
 - **Speed**: Real-time Twitter/Telegram streams instead of stale RSS
-- **Classification**: Claude classifies "bullish or bearish?" instead of estimating probability — a task LLMs are actually good at
+- **Classification**: Gemini classifies "bullish or bearish?" instead of estimating probability — a task LLMs are actually good at
 - **Niche markets**: Only trades markets under $500K volume where the crowd is small and slow
 
 ---
@@ -49,10 +49,10 @@ cp .env.example .env
 Add your keys to `.env`:
 
 ```
-ANTHROPIC_API_KEY=sk-ant-...         # Required
-TWITTER_BEARER_TOKEN=...             # Optional — real-time news stream
-TELEGRAM_BOT_TOKEN=...               # Optional — channel monitoring
-POLYMARKET_API_KEY=...               # Optional — live trading only
+GEMINI_API_KEY=AIza...                  # Required — get from makersuite.google.com
+TWITTER_BEARER_TOKEN=...               # Optional — real-time news stream
+TELEGRAM_BOT_TOKEN=...                 # Optional — channel monitoring
+POLYMARKET_API_KEY=...                 # Optional — live trading only
 ```
 
 ### Verify
@@ -75,7 +75,7 @@ python cli.py watch
 python cli.py watch --live
 ```
 
-The `watch` command runs indefinitely. It connects to your configured news sources (Twitter, Telegram, RSS fallback), matches breaking headlines to niche Polymarket markets, classifies each with Claude, and executes trades when it finds edge.
+The `watch` command runs indefinitely. It connects to your configured news sources (Twitter, Telegram, RSS fallback), matches breaking headlines to niche Polymarket markets, classifies each with Gemini, and executes trades when it finds edge.
 
 ### V1: Synchronous Pipeline
 
@@ -126,7 +126,7 @@ python cli.py backtest --limit 50 --category ai
 ```
 news_stream.py      Real-time news — Twitter API v2, Telegram, RSS fallback
 market_watcher.py   Polymarket WebSocket — live prices, niche filter, momentum
-classifier.py       Claude classification — bullish/bearish/neutral + materiality
+classifier.py       Gemini classification — bullish/bearish/neutral + materiality
 matcher.py          Routes breaking news to relevant markets
 edge.py             Edge detection + Kelly sizing (V2: classification-based)
 executor.py         Trade execution — dry-run + live CLOB orders (async)
@@ -155,9 +155,9 @@ Real-time streams from Twitter (filtered by keywords: OpenAI, Bitcoin, Fed rate,
 Each headline is matched to active niche markets (<$500K volume) by keyword overlap. Only relevant markets proceed to classification.
 
 ### 3. Classification (The Key Shift)
-Instead of "what's the probability?", Claude is asked: *"Does this news make the market MORE likely to resolve YES, MORE likely to resolve NO, or is it NOT RELEVANT?"*
+Instead of "what's the probability?", Gemini is asked: *"Does this news make the market MORE likely to resolve YES, MORE likely to resolve NO, or is it NOT RELEVANT?"*
 
-This is a classification task — something LLMs are genuinely good at. Claude also rates materiality (0-1): how much should this move the price?
+This is a classification task — something LLMs are genuinely good at. Gemini also rates materiality (0-1): how much should this move the price?
 
 ### 4. Edge Detection
 If direction is bullish/bearish AND materiality exceeds threshold (default 0.6) AND the market price has room to move — that's a signal. Position sizing uses quarter-Kelly.

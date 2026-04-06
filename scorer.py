@@ -2,14 +2,14 @@ from __future__ import annotations
 
 import json
 
-import anthropic
+import google.genai as genai
 
 import config
 from scraper import NewsItem
 from markets import Market
 
 
-client = anthropic.Anthropic(api_key=config.ANTHROPIC_API_KEY)
+client = genai.Client(api_key=config.GEMINI_API_KEY)
 
 SCORING_PROMPT = """You are a prediction market analyst. Your job is to estimate the probability that a specific market question will resolve YES, based on recent news headlines.
 
@@ -37,7 +37,7 @@ Respond with ONLY valid JSON in this exact format:
 
 
 def score_market(market: Market, news: list[NewsItem]) -> dict:
-    """Score a market question against recent news using Claude."""
+    """Score a market question against recent news using Gemini."""
     headlines_text = "\n".join(
         f"[{i}] [{item.source}] ({item.age_hours():.1f}h ago) {item.headline}"
         for i, item in enumerate(news)
@@ -58,13 +58,15 @@ def score_market(market: Market, news: list[NewsItem]) -> dict:
     )
 
     try:
-        response = client.messages.create(
-            model=config.CLAUDE_MODEL,
-            max_tokens=500,
-            temperature=0.2,
-            messages=[{"role": "user", "content": prompt}],
+        response = client.models.generate_content(
+            model=config.SCORING_MODEL,
+            contents=prompt,
+            config={
+                "temperature": 0.2,
+                "max_output_tokens": 500,
+            }
         )
-        text = response.content[0].text.strip()
+        text = response.text.strip()
 
         # Extract JSON from response (handle markdown code blocks)
         if "```" in text:

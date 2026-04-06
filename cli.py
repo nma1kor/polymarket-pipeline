@@ -155,8 +155,9 @@ def cmd_verify(args):
         all_good = False
 
     # 2. Dependencies
+    # 2. Dependencies
     deps_ok = True
-    for mod in ["anthropic", "feedparser", "httpx", "rich", "dotenv", "websockets", "tweepy", "aiohttp"]:
+    for mod in ["google.genai", "feedparser", "httpx", "rich", "dotenv", "websockets", "tweepy", "aiohttp"]:
         try:
             __import__(mod)
         except ImportError:
@@ -174,24 +175,30 @@ def cmd_verify(args):
     if not env_exists:
         all_good = False
 
-    # 4. Anthropic API key
+    # 4. Gemini API key
     import config
-    has_key = bool(config.ANTHROPIC_API_KEY) and config.ANTHROPIC_API_KEY != "sk-ant-..."
+    has_key = bool(config.GEMINI_API_KEY)
     if has_key:
         try:
-            import anthropic
-            client = anthropic.Anthropic(api_key=config.ANTHROPIC_API_KEY)
-            client.messages.create(
-                model="claude-haiku-4-5-20251001",
-                max_tokens=10,
-                messages=[{"role": "user", "content": "Say OK"}],
-            )
-            console.print(f"  [bright_green]PASS[/bright_green]  Anthropic API key (verified)")
+            import google.genai as genai
+            client = genai.Client(api_key=config.GEMINI_API_KEY)
+            # List available models
+            models = client.models.list()
+            available_models = [model.name for model in models]
+            console.print(f"  [bright_green]PASS[/bright_green]  Gemini API key (verified) - Available models: {', '.join(available_models[:5])}...")
+            # Try a simple generation with the first available model
+            if available_models:
+                model_name = available_models[0]
+                response = client.models.generate_content(model=model_name, contents="Say OK")
+                console.print(f"  [bright_green]PASS[/bright_green]  Gemini API key (verified)")
+            else:
+                console.print(f"  [red]FAIL[/red]  Gemini API key — No models available")
+                all_good = False
         except Exception as e:
-            console.print(f"  [red]FAIL[/red]  Anthropic API key — {type(e).__name__}: {e}")
+            console.print(f"  [red]FAIL[/red]  Gemini API key — {type(e).__name__}: {e}")
             all_good = False
     else:
-        console.print(f"  [red]FAIL[/red]  Anthropic API key not set")
+        console.print(f"  [red]FAIL[/red]  Gemini API key not set")
         all_good = False
 
     # 5. News scraper (RSS)
