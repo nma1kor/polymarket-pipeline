@@ -1,6 +1,6 @@
 services:
-  # Main pipeline service (runs continuously)
-  - type: web
+  # Main pipeline service (runs continuously as background worker)
+  - type: background_worker
     name: polymarket-pipeline
     runtime: docker
     plan: free
@@ -27,9 +27,6 @@ services:
         sync: false
       - key: DRY_RUN
         value: "true"
-    
-    # Health check (dashboard endpoint)
-    healthCheckPath: /
     
     # Keep service running
     autoDeploy: true

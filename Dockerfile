@@ -17,8 +17,8 @@ COPY . .
 # Create data directory for SQLite
 RUN mkdir -p /app/data
 
-# Expose port for dashboard (if running web service)
-EXPOSE 8000
+# Create a simple startup script
+RUN echo '#!/bin/bash\npython cli.py watch' > /app/start.sh && chmod +x /app/start.sh
 
-# Default command: run the pipeline watch mode
-CMD python cli.py watch
+# Default command: run the startup script
+CMD ["/app/start.sh"]
