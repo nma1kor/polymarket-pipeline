@@ -21,4 +21,4 @@ RUN mkdir -p /app/data
 EXPOSE 8000
 
 # Default command: run the pipeline watch mode
-CMD ["python", "cli.py", "watch"]
+CMD python cli.py watch
