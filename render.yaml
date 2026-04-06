@@ -1,0 +1,41 @@
+services:
+  # Main pipeline service (runs continuously)
+  - type: web
+    name: polymarket-pipeline
+    runtime: docker
+    plan: free
+    branch: nma1kor-save
+    
+    # Build configuration
+    dockerfilePath: ./Dockerfile
+    
+    # Environment variables (set these in Render dashboard)
+    envVars:
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: TWITTER_BEARER_TOKEN
+        sync: false
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: POLYMARKET_API_KEY
+        sync: false
+      - key: POLYMARKET_API_SECRET
+        sync: false
+      - key: POLYMARKET_API_PASSPHRASE
+        sync: false
+      - key: POLYMARKET_PRIVATE_KEY
+        sync: false
+      - key: DRY_RUN
+        value: "true"
+    
+    # Health check (dashboard endpoint)
+    healthCheckPath: /
+    
+    # Keep service running
+    autoDeploy: true
+    
+    # Persistent disk for SQLite database
+    disk:
+      - name: data
+        mountPath: /app/data
+        sizeGB: 1
